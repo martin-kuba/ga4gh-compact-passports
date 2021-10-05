@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.cbor.databind.CBORMapper;
+import com.google.crypto.tink.subtle.Hex;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -74,23 +75,28 @@ public class GA4GHPassportTest implements CommandLineRunner {
 
         String jwtSignedWithRSA = createGA4GHPassportVisa(rsaKey, jwkURL, visa);
         log.info("visa as JWT: {}", jwtSignedWithRSA);
-        log.info("JWT with RSA JOSE character length: {}", jwtSignedWithRSA.length());
+        log.info("JWT with RSA character length: {}", jwtSignedWithRSA.length());
 
         String jwtSignedWithECC = createGA4GHPassportVisa(eccKey, jwkURL, visa);
         log.info("visa as JWT: {}", jwtSignedWithECC);
-        log.info("JWT character length: {}", jwtSignedWithECC.length());
+        log.info("JWT with ECC character length: {}", jwtSignedWithECC.length());
 
         String jwtSignedWithOKP = createGA4GHPassportVisa(okpKey, jwkURL, visa);
         log.info("visa as JWT: {}", jwtSignedWithOKP);
-        log.info("JWT character length: {}", jwtSignedWithOKP.length());
+        log.info("JWT with OKP character length: {}", jwtSignedWithOKP.length());
 
         CBORMapper mapper = new CBORMapper();
         ObjectWriter writer = mapper.writer();
         String jsonPayload = SignedJWT.parse(jwtSignedWithECC).getPayload().toString();
+        log.info("JSON payload: {}",jsonPayload);
+        log.info("JSON payload byte length: {}",jsonPayload.length());
         JsonNode payload = new ObjectMapper().readValue(jsonPayload, JsonNode.class);
         byte[] cborPayload = new CBORMapper().writer().writeValueAsBytes(payload);
         byte[] cborVisa = createCBORVisa(cborPayload);
-        log.info("CBOR with COSE byte length: {}",cborVisa.length);
+        log.info("CBOR payload: {}", Hex.encode(cborPayload));
+        log.info("CBOR payload byte length: {}",cborPayload.length);
+        log.info("COSE: {}", Hex.encode(cborVisa));
+        log.info("COSE byte length: {}",cborVisa.length);
     }
 
     private Visa createExampleVisa() {
@@ -125,7 +131,7 @@ public class GA4GHPassportTest implements CommandLineRunner {
         JWSHeader jwsHeader = new JWSHeader.Builder(JWSAlgorithm.parse(key.getAlgorithm().getName()))
                 .keyID(key.getKeyID())
                 .type(JOSEObjectType.JWT)
-                .jwkURL(jku)
+//                .jwkURL(jku)
                 .build();
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
                 .issuer(visa.issuer())
