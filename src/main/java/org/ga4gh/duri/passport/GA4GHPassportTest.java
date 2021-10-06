@@ -39,6 +39,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -97,6 +98,9 @@ public class GA4GHPassportTest implements CommandLineRunner {
         log.info("CBOR payload byte length: {}",cborPayload.length);
         log.info("COSE: {}", Hex.encode(cborVisa));
         log.info("COSE byte length: {}",cborVisa.length);
+        String cborVisaBase64 = Base64.getUrlEncoder().encodeToString(cborVisa);
+        log.info("COSE base64: {}", cborVisaBase64);
+        log.info("COSE base64 character length: {}",cborVisaBase64.length());
     }
 
     private Visa createExampleVisa() {
